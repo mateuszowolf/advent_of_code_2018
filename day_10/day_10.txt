@@ -1,0 +1,60 @@
+import numpy as np
+import re
+import matplotlib.pyplot as plt
+# file = 'test_input.txt'
+file = 'input.txt'
+
+class Point:
+    def __init__(self, x, y, vel_x, vel_y):
+        self.x = int(x)
+        self.y = int(y)
+        self.vel_x = int(vel_x)
+        self.vel_y = int(vel_y)
+    
+    def tick(self):
+        self.x += self.vel_x
+        self.y += self.vel_y
+    
+    def __repr__(self):
+        return f"<{self.x} {self.y}>"
+
+data = []
+min_x, max_x, min_y, max_y = 0,0,0,0
+extract = re.compile('<[-,\d\s]+>')
+vals = re.compile('-?\d+')
+with open(file) as f:
+    for line in f:
+        line = re.findall(extract, line.strip())
+        x, y = map(int, re.findall(vals, line[0]))
+        vel = re.findall(vals, line[1])
+        if x < min_x:
+            min_x = x
+        if y < min_y:
+            min_y = y
+        if x > max_x:
+            max_x = x
+        if y > max_y:
+            max_y = y
+        p = Point(x, y, *vel)
+        data.append(p)
+
+min_x = abs(min_x)
+min_y = abs(min_y)
+height = abs(min_x + max_x) + int(abs(min_x + max_x)*0.2)
+width = abs(min_y + max_y)+ int(abs(min_y + max_y)*0.2)
+
+for i in data:
+    i.x += min_x
+    i.y += min_y
+
+def next_second():
+    table = np.zeros((width, height), dtype=np.bool8)
+    for i in data:
+        i.tick()
+        try:
+            table[i.y, i.x] = True
+        except:
+            pass
+    plt.figure(figsize=(20, 20))
+    plt.imshow(table, cmap='hot', interpolation='nearest')
+    plt.show()
